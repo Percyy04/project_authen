@@ -2,7 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../services/auth_service.dart';
-import 'forgot_password_choice_screen.dart';
+import 'forgot_password_screen.dart';
 import 'register_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -51,7 +51,8 @@ class _LoginScreenState extends State<LoginScreen> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Timeout khi đăng nhập. Kiểm tra mạng/emulator Google Play.'),
+          content: Text(
+              'Timeout khi đăng nhập. Kiểm tra mạng/emulator Google Play.'),
           backgroundColor: Colors.red,
         ),
       );
@@ -92,19 +93,18 @@ class _LoginScreenState extends State<LoginScreen> {
                 Text(
                   'Chào mừng trở lại',
                   style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: Colors.indigo,
-                  ),
+                        fontWeight: FontWeight.bold,
+                        color: Colors.indigo,
+                      ),
                 ),
                 const SizedBox(height: 8),
                 Text(
                   'Đăng nhập để tiếp tục trải nghiệm',
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    color: Colors.grey[600],
-                  ),
+                        color: Colors.grey[600],
+                      ),
                 ),
                 const SizedBox(height: 40),
-
                 TextFormField(
                   controller: _emailController,
                   decoration: const InputDecoration(
@@ -119,9 +119,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     return null;
                   },
                 ),
-
                 const SizedBox(height: 20),
-
                 TextFormField(
                   controller: _passwordController,
                   obscureText: _obscurePassword,
@@ -130,7 +128,9 @@ class _LoginScreenState extends State<LoginScreen> {
                     prefixIcon: const Icon(Icons.lock_outline),
                     suffixIcon: IconButton(
                       icon: Icon(
-                        _obscurePassword ? Icons.visibility : Icons.visibility_off,
+                        _obscurePassword
+                            ? Icons.visibility
+                            : Icons.visibility_off,
                       ),
                       onPressed: () =>
                           setState(() => _obscurePassword = !_obscurePassword),
@@ -143,38 +143,32 @@ class _LoginScreenState extends State<LoginScreen> {
                     return null;
                   },
                 ),
-
                 Align(
                   alignment: Alignment.centerRight,
                   child: TextButton(
                     onPressed: () => Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (_) => const ForgotPasswordChoiceScreen(),
-                      ),
+                          builder: (_) => const ForgotPasswordScreen()),
                     ),
                     child: const Text('Quên mật khẩu?'),
                   ),
                 ),
-
                 const SizedBox(height: 20),
-
                 ElevatedButton(
                   onPressed: _isLoading ? null : _login,
                   child: _isLoading
                       ? const SizedBox(
-                    height: 20,
-                    width: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: Colors.white,
-                    ),
-                  )
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
                       : const Text('Đăng nhập'),
                 ),
-
                 const SizedBox(height: 20),
-
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -182,7 +176,8 @@ class _LoginScreenState extends State<LoginScreen> {
                     TextButton(
                       onPressed: () => Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (_) => const RegisterScreen()),
+                        MaterialPageRoute(
+                            builder: (_) => const RegisterScreen()),
                       ),
                       child: const Text('Đăng ký ngay'),
                     ),

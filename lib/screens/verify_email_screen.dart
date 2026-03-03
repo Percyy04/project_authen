@@ -27,8 +27,6 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
           const SnackBar(content: Text('Email đã xác minh ✅')),
         );
 
-        // TODO: chuyển sang Home
-        // Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const HomeScreen()));
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Chưa xác minh. Vui lòng kiểm tra email.')),
