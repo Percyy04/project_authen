@@ -9,7 +9,6 @@ class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
   AuthService() {
-    // Không bắt buộc, nhưng hết warning locale
     _auth.setLanguageCode('vi');
   }
 

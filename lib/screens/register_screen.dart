@@ -1,9 +1,7 @@
 import 'dart:async';
-
-import 'package:auth_demo/services/auth_service.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-
+import 'package:firebase_auth/firebase_auth.dart';
+import '../services/auth_service.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -19,8 +17,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _confirmPasswordController = TextEditingController();
 
   bool _isLoading = false;
-  bool _obscurePassword = true;
-  bool _obscureConfirm = true;
+  bool _hidePass = true;
+  bool _hideConfirm = true;
 
   @override
   void dispose() {
@@ -37,18 +35,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
     setState(() => _isLoading = true);
 
     try {
-      final email = _emailController.text.trim();
-      final password = _passwordController.text;
+      final cred = await authService.value
+          .createUser(
+        email: _emailController.text,
+        password: _passwordController.text,
+      )
+          .timeout(const Duration(seconds: 15));
 
-      final credential = await authService.value.createUser(
-        email: email,
-        password: password,
-      ).timeout(const Duration(seconds: 15));
-
-      await credential.user?.sendEmailVerification();
+      await cred.user?.sendEmailVerification().timeout(const Duration(seconds: 15));
 
       if (!mounted) return;
-
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Đăng ký thành công! Vui lòng kiểm tra email để xác minh.'),
@@ -56,31 +52,25 @@ class _RegisterScreenState extends State<RegisterScreen> {
         ),
       );
 
-      Navigator.pop(context); // quay lại login
-
+      Navigator.pop(context); // về login
     } on TimeoutException {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Firebase timeout. Kiểm tra mạng hoặc cấu hình Android.'),
+          content: Text('Firebase timeout. Kiểm tra mạng/emulator Google Play.'),
           backgroundColor: Colors.red,
         ),
       );
     } on FirebaseAuthException catch (e) {
       if (!mounted) return;
 
-      String message = e.message ?? 'Đăng ký thất bại';
-
-      if (e.code == 'email-already-in-use') {
-        message = 'Email đã được sử dụng';
-      } else if (e.code == 'invalid-email') {
-        message = 'Email không hợp lệ';
-      } else if (e.code == 'weak-password') {
-        message = 'Mật khẩu quá yếu (>= 6 ký tự)';
-      }
+      String msg = e.message ?? 'Đăng ký thất bại';
+      if (e.code == 'email-already-in-use') msg = 'Email đã được sử dụng';
+      if (e.code == 'invalid-email') msg = 'Email không hợp lệ';
+      if (e.code == 'weak-password') msg = 'Mật khẩu yếu (>=6 ký tự)';
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(message), backgroundColor: Colors.red),
+        SnackBar(content: Text(msg), backgroundColor: Colors.red),
       );
     } catch (e) {
       if (!mounted) return;
@@ -95,22 +85,41 @@ class _RegisterScreenState extends State<RegisterScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Đăng ký')),
+      appBar: AppBar(backgroundColor: Colors.transparent, elevation: 0),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.symmetric(horizontal: 24.0),
           child: Form(
             key: _formKey,
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                const SizedBox(height: 20),
+                Text(
+                  'Tạo tài khoản',
+                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.indigo,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Đăng ký bằng Email và xác minh bằng link',
+                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                    color: Colors.grey[600],
+                  ),
+                ),
+                const SizedBox(height: 40),
+
                 TextFormField(
                   controller: _emailController,
+                  keyboardType: TextInputType.emailAddress,
                   decoration: const InputDecoration(
                     labelText: 'Email',
                     prefixIcon: Icon(Icons.email_outlined),
                   ),
                   validator: (value) {
-                    final v = value?.trim() ?? '';
+                    final v = (value ?? '').trim();
                     if (v.isEmpty) return 'Vui lòng nhập email';
                     if (!v.contains('@')) return 'Email không hợp lệ';
                     return null;
@@ -121,24 +130,23 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                 TextFormField(
                   controller: _passwordController,
-                  obscureText: _obscurePassword,
+                  obscureText: _hidePass,
                   decoration: InputDecoration(
                     labelText: 'Mật khẩu',
                     prefixIcon: const Icon(Icons.lock_outline),
                     suffixIcon: IconButton(
-                      icon: Icon(
-                        _obscurePassword
-                            ? Icons.visibility
-                            : Icons.visibility_off,
-                      ),
-                      onPressed: () =>
-                          setState(() => _obscurePassword = !_obscurePassword),
+                      icon: Icon(_hidePass ? Icons.visibility : Icons.visibility_off),
+                      onPressed: () => setState(() => _hidePass = !_hidePass),
                     ),
                   ),
                   validator: (value) {
                     final v = value ?? '';
                     if (v.isEmpty) return 'Vui lòng nhập mật khẩu';
-                    if (v.length < 6) return 'Mật khẩu tối thiểu 6 ký tự';
+                    final passwordRegex =
+                    RegExp(r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{6,}$');
+                    if (!passwordRegex.hasMatch(v)) {
+                      return 'Phải có chữ hoa, chữ thường và số (>=6 ký tự)';
+                    }
                     return null;
                   },
                 ),
@@ -147,46 +155,50 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                 TextFormField(
                   controller: _confirmPasswordController,
-                  obscureText: _obscureConfirm,
+                  obscureText: _hideConfirm,
                   decoration: InputDecoration(
                     labelText: 'Xác nhận mật khẩu',
                     prefixIcon: const Icon(Icons.lock_reset_outlined),
                     suffixIcon: IconButton(
-                      icon: Icon(
-                        _obscureConfirm
-                            ? Icons.visibility
-                            : Icons.visibility_off,
-                      ),
-                      onPressed: () =>
-                          setState(() => _obscureConfirm = !_obscureConfirm),
+                      icon: Icon(_hideConfirm ? Icons.visibility : Icons.visibility_off),
+                      onPressed: () => setState(() => _hideConfirm = !_hideConfirm),
                     ),
                   ),
                   validator: (value) {
-                    if (value != _passwordController.text) {
-                      return 'Mật khẩu không khớp';
-                    }
+                    final v = value ?? '';
+                    if (v.isEmpty) return 'Vui lòng xác nhận mật khẩu';
+                    if (v != _passwordController.text) return 'Mật khẩu không khớp';
                     return null;
                   },
                 ),
 
-                const SizedBox(height: 30),
+                const SizedBox(height: 40),
 
-                SizedBox(
-                  width: double.infinity,
-                  height: 50,
-                  child: ElevatedButton(
-                    onPressed: _isLoading ? null : _register,
-                    child: _isLoading
-                        ? const SizedBox(
-                      height: 20,
-                      width: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Colors.white,
-                      ),
-                    )
-                        : const Text('Đăng ký'),
-                  ),
+                ElevatedButton(
+                  onPressed: _isLoading ? null : _register,
+                  child: _isLoading
+                      ? const SizedBox(
+                    height: 20,
+                    width: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Colors.white,
+                    ),
+                  )
+                      : const Text('Đăng ký'),
+                ),
+
+                const SizedBox(height: 20),
+
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text('Đã có tài khoản?'),
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text('Đăng nhập'),
+                    ),
+                  ],
                 ),
               ],
             ),
