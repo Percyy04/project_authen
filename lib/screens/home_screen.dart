@@ -64,6 +64,8 @@ class _HomeScreenState extends State<HomeScreen> {
     final user = authService.value.currentUser;
     final email = user?.email ?? '';
     final verified = user?.emailVerified ?? false;
+    final phoneVerified = user?.phoneNumber != null;
+
 
     return Scaffold(
       appBar: AppBar(
@@ -187,6 +189,17 @@ class _HomeScreenState extends State<HomeScreen> {
               subtitle: const Text('Đổi mật khẩu khi đang đăng nhập'),
               trailing: const Icon(Icons.chevron_right),
               onTap: _openChangePasswordDialog,
+            ),
+          ),
+
+          Card(
+            elevation: 0,
+            child: ListTile(
+              leading: const Icon(Icons.phone),
+              title: const Text('Thêm số diện thoại'),
+              subtitle: const Text('Thêm số điện thoại để xác minh'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => print('Update soon'),
             ),
           ),
 
