@@ -136,6 +136,14 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
+  get:
+    dependency: "direct main"
+    description:
+      name: get
+      sha256: "5ed34a7925b85336e15d472cc4cfe7d9ebf4ab8e8b9f688585bf6b50f4c3d79a"
+      url: "https://pub.dev"
+    source: hosted
+    version: "4.7.3"
   http:
     dependency: transitive
     description:
@@ -224,6 +232,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.9.1"
+  pinput:
+    dependency: "direct main"
+    description:
+      name: pinput
+      sha256: "4c3f1b84768b47a56a1abdaca551bd7cef4ac673b882209039ecdf803a5d6e68"
+      url: "https://pub.dev"
+    source: hosted
+    version: "6.0.2"
   plugin_platform_interface:
     dependency: transitive
     description:

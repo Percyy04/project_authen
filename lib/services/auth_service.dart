@@ -1,26 +1,28 @@
 import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
-final ValueNotifier<AuthService> authService =
-ValueNotifier(AuthService());
+final ValueNotifier<AuthService> authService = ValueNotifier(AuthService());
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
   AuthService() {
-    _auth.setLanguageCode('vi');
+    // _auth.setLanguageCode('vi');
+    // if (kDebugMode) {
+    //   _auth.setSettings(appVerificationDisabledForTesting: true);
+    // }
   }
 
   User? get currentUser => _auth.currentUser;
-
   Stream<User?> get authStateChanges => _auth.authStateChanges();
 
   Future<UserCredential> signIn({
     required String email,
     required String password,
   }) async {
-    return await _auth
+    return _auth
         .signInWithEmailAndPassword(
       email: email.trim(),
       password: password,
@@ -32,7 +34,7 @@ class AuthService {
     required String email,
     required String password,
   }) async {
-    return await _auth
+    return _auth
         .createUserWithEmailAndPassword(
       email: email.trim(),
       password: password,
@@ -53,8 +55,7 @@ class AuthService {
   Future<void> updateUsername({required String username}) async {
     final user = _auth.currentUser;
     if (user != null) {
-      await user.updateDisplayName(username)
-          .timeout(const Duration(seconds: 15));
+      await user.updateDisplayName(username).timeout(const Duration(seconds: 15));
     }
   }
 
@@ -65,12 +66,13 @@ class AuthService {
     final user = _auth.currentUser;
     if (user == null) return;
 
-    AuthCredential credential = EmailAuthProvider.credential(
+    final credential = EmailAuthProvider.credential(
       email: email.trim(),
       password: password,
     );
 
-    await user.reauthenticateWithCredential(credential)
+    await user
+        .reauthenticateWithCredential(credential)
         .timeout(const Duration(seconds: 15));
 
     await user.delete().timeout(const Duration(seconds: 15));
@@ -85,15 +87,47 @@ class AuthService {
     final user = _auth.currentUser;
     if (user == null) return;
 
-    AuthCredential credential = EmailAuthProvider.credential(
+    final credential = EmailAuthProvider.credential(
       email: email.trim(),
       password: currentPassword,
     );
 
-    await user.reauthenticateWithCredential(credential)
+    await user
+        .reauthenticateWithCredential(credential)
         .timeout(const Duration(seconds: 15));
 
-    await user.updatePassword(newPassword)
-        .timeout(const Duration(seconds: 15));
+    await user.updatePassword(newPassword).timeout(const Duration(seconds: 15));
+  }
+
+  // === PHONE AUTH ===
+
+  Future<void> verifyPhoneNumber({
+    required String phoneNumber,
+    required PhoneCodeSent codeSent,
+    required PhoneVerificationFailed verificationFailed,
+    required PhoneVerificationCompleted verificationCompleted,
+    required PhoneCodeAutoRetrievalTimeout codeAutoRetrievalTimeout,
+    int? forceResendingToken,
+  }) async {
+    await _auth.verifyPhoneNumber(
+      phoneNumber: phoneNumber.trim(),
+      timeout: const Duration(seconds: 60),
+      forceResendingToken: forceResendingToken,
+      verificationCompleted: verificationCompleted,
+      verificationFailed: verificationFailed,
+      codeSent: codeSent,
+      codeAutoRetrievalTimeout: codeAutoRetrievalTimeout,
+    );
+  }
+
+  Future<UserCredential> signInWithSmsCode({
+    required String verificationId,
+    required String smsCode,
+  }) async {
+    final credential = PhoneAuthProvider.credential(
+      verificationId: verificationId,
+      smsCode: smsCode,
+    );
+    return _auth.signInWithCredential(credential).timeout(const Duration(seconds: 20));
   }
 }

@@ -199,7 +199,16 @@ class _HomeScreenState extends State<HomeScreen> {
               title: const Text('Thêm số diện thoại'),
               subtitle: const Text('Thêm số điện thoại để xác minh'),
               trailing: const Icon(Icons.chevron_right),
-              onTap: () => print('Update soon'),
+              onTap: () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('⭐ Tính năng này dành cho Gói trả phí.Thông cảm cho nhóm nhé hihihi!'),
+                    backgroundColor: Colors.red,
+                    behavior: SnackBarBehavior.floating,
+                  ),
+                );
+              },
+
             ),
           ),
 
