@@ -9,7 +9,7 @@ class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
   AuthService() {
-    // _auth.setLanguageCode('vi');
+    _auth.setLanguageCode('vi');
     // if (kDebugMode) {
     //   _auth.setSettings(appVerificationDisabledForTesting: true);
     // }
